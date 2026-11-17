@@ -15,6 +15,9 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 var app = builder.Build();
 
 app.UseExceptionHandler(ErrorHandling.Handle);
+// Interfaccia web (web/, esportata in wwwroot): servita dalla stessa origine dell'API
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 

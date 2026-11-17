@@ -4,7 +4,7 @@ PDM (Product Data Management) per la gestione di file e archivi SolidWorks: arti
 
 ## Stato
 
-Prototipo di interfaccia cliccabile con dati di esempio, senza backend: `prototype/index.html` (si apre direttamente nel browser).
+Fase 1 in corso: database PostgreSQL (`db/`), API REST ASP.NET Core (`api/`) e interfaccia web in sola lettura (`web/`). Il prototipo cliccabile originale resta in `prototype/index.html`.
 
 ## Database
 
@@ -18,6 +18,10 @@ Schema PostgreSQL 16 in `db/migrations/`, dati di esempio in `db/seed.sql`, dett
 ## API
 
 API REST in ASP.NET Core (.NET 8) in `api/`: articoli, distinta, where-used, check-out/check-in, revisioni e contenuto dei file. Dettagli e avvio in [`api/README.md`](api/README.md).
+
+## Interfaccia web
+
+Next.js in `web/`, esportata come sito statico e servita dall'API. Dettagli in [`web/README.md`](web/README.md).
 
 ## Roadmap
 
