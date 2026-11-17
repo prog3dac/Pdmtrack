@@ -90,6 +90,13 @@ select t.ok((select string_agg(filename || ' v' || version, ', ' order by level,
             = '140-0001.SLDASM v1, 120-0001.SLDPRT v13, 150-0002.SLDPRT v1', 'albero del nuovo assieme');
 select t.ok((select count(*) from item_revisions where item_id = t.id('140-0001') and revision = 'A') = 1, 'nuovo articolo nasce in rev A');
 
+-- Albero ultima versione ----------------------------------------------------
+-- 140-0001 v1 riferisce 120-0001 v13; ora 120-0001 e' alla v14
+select t.ok((select string_agg(filename || ' v' || version, ', ' order by level, filename) from latest_tree(t.id('140-0001')))
+            = '140-0001.SLDASM v1, 120-0001.SLDPRT v14, 150-0002.SLDPRT v1', 'latest_tree prende le versioni correnti');
+select t.ok((select string_agg(filename || ' v' || version, ', ' order by level, filename) from revision_tree(t.id('140-0001')))
+            = '140-0001.SLDASM v1, 120-0001.SLDPRT v13, 150-0002.SLDPRT v1', 'revision_tree resta sulle versioni registrate');
+
 -- Obsolescenza ---------------------------------------------------------------
 select set_config('pdm.user_login', 'lbianchi', false);
 select transition_item(t.id('120-0002'), 'obs');

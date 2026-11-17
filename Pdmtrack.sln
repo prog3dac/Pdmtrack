@@ -5,11 +5,17 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4453FE2F-609F-4C59-A9D9-650CF7A14DFC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pdmtrack.Api", "src\Pdmtrack.Api\Pdmtrack.Api.csproj", "{E6619658-F222-419E-A80B-38BCCC03EC27}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pdmtrack.Api", "api\src\Pdmtrack.Api\Pdmtrack.Api.csproj", "{E6619658-F222-419E-A80B-38BCCC03EC27}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{4BE2C8BA-3A1F-46EB-9501-8E232BEA78A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pdmtrack.Api.Tests", "tests\Pdmtrack.Api.Tests\Pdmtrack.Api.Tests.csproj", "{645F471C-5EEA-47C3-9893-0F8C00F4EBDE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pdmtrack.Api.Tests", "api\tests\Pdmtrack.Api.Tests\Pdmtrack.Api.Tests.csproj", "{645F471C-5EEA-47C3-9893-0F8C00F4EBDE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "client", "client", "{78F606FD-FF3B-4071-A059-45A740866F8B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{52714A0A-646C-44A0-94C9-612D7B786A92}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pdmtrack.Client", "client\src\Pdmtrack.Client\Pdmtrack.Client.csproj", "{8C1FB8F8-96BD-4144-B142-4EF84D2AE751}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,9 +34,15 @@ Global
 		{645F471C-5EEA-47C3-9893-0F8C00F4EBDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{645F471C-5EEA-47C3-9893-0F8C00F4EBDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{645F471C-5EEA-47C3-9893-0F8C00F4EBDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C1FB8F8-96BD-4144-B142-4EF84D2AE751}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C1FB8F8-96BD-4144-B142-4EF84D2AE751}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C1FB8F8-96BD-4144-B142-4EF84D2AE751}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C1FB8F8-96BD-4144-B142-4EF84D2AE751}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{E6619658-F222-419E-A80B-38BCCC03EC27} = {4453FE2F-609F-4C59-A9D9-650CF7A14DFC}
 		{645F471C-5EEA-47C3-9893-0F8C00F4EBDE} = {4BE2C8BA-3A1F-46EB-9501-8E232BEA78A1}
+		{52714A0A-646C-44A0-94C9-612D7B786A92} = {78F606FD-FF3B-4071-A059-45A740866F8B}
+		{8C1FB8F8-96BD-4144-B142-4EF84D2AE751} = {52714A0A-646C-44A0-94C9-612D7B786A92}
 	EndGlobalSection
 EndGlobal

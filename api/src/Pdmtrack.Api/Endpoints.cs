@@ -128,13 +128,17 @@ public static class Endpoints
                     """, new { id }, tx);
             }));
 
-        api.MapGet("/items/{code}/tree", (HttpContext ctx, PdmDb db, string code, string? revision) =>
+        // latest=true: versioni correnti di tutti i file (get latest); altrimenti le versioni esatte
+        // registrate nella revisione (o nella versione corrente se la revisione non e' indicata)
+        api.MapGet("/items/{code}/tree", (HttpContext ctx, PdmDb db, string code, string? revision, bool? latest) =>
             db.Run(ctx.Login(), async (c, tx) =>
             {
                 var id = await IdOf(c, tx, code);
-                return await c.QueryAsync<TreeRow>("""
-                    select level, filename, folder_path, version, sha256, size_bytes from revision_tree(@id, @revision)
-                    """, new { id, revision }, tx);
+                if (latest == true && revision is not null) throw ApiException.Bad("Usa revision oppure latest, non entrambi");
+                var fn = latest == true ? "latest_tree(@id)" : "revision_tree(@id, @revision)";
+                return await c.QueryAsync<TreeRow>(
+                    $"select level, filename, folder_path, version, sha256, size_bytes from {fn} order by level, filename",
+                    new { id, revision }, tx);
             }));
 
         api.MapMethods("/items/{code}", ["PATCH"], (HttpContext ctx, PdmDb db, string code, ItemPatch patch) =>

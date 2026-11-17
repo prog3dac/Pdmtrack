@@ -277,14 +277,37 @@ begin
   return query select * from version_tree(vid) order by 1, 3;
 end $$;
 
+-- Albero "ultima versione": parte dalla versione corrente e segue i riferimenti verso i file,
+-- prendendo di ognuno la versione corrente (e i suoi riferimenti correnti). E' il "get latest"
+-- della cartella di lavoro; revision_tree invece riproduce le versioni esatte registrate.
+create function latest_tree(p_item uuid)
+returns table (level int, file_id uuid, filename text, folder_path text, version int,
+               sha256 text, storage_path text, size_bytes bigint)
+language sql stable security definer set search_path = public as $$
+  with recursive t as (
+    select 0 as level, f.id as file_id, array[f.id] as chain
+    from files f where f.item_id = p_item
+    union all
+    select t.level + 1, r.child_file_id, t.chain || r.child_file_id
+    from t join files pf on pf.id = t.file_id
+           join file_versions pv on pv.file_id = pf.id and pv.version = pf.current_version
+           join file_refs r on r.parent_version_id = pv.id
+    where r.child_file_id <> all (t.chain)
+  )
+  select distinct on (f.id) t.level, f.id, f.filename, f.folder_path, v.version, v.sha256, v.storage_path, v.size_bytes
+  from t join files f on f.id = t.file_id
+         join file_versions v on v.file_id = f.id and v.version = f.current_version
+  order by f.id, t.level;
+$$;
+
 -- Permessi ------------------------------------------------------------------------
 
 grant select on item_revisions, file_refs to pdm_app;
 revoke execute on function next_revision(text), item_revision_row(), write_file_refs(uuid, jsonb),
   check_in(uuid, text, bigint, text, jsonb),
   add_file(text, text, item_type, text, text, text, bigint, text, numeric, text, text, jsonb),
-  version_tree(uuid), revision_tree(uuid, text) from public;
+  version_tree(uuid), revision_tree(uuid, text), latest_tree(uuid) from public;
 grant execute on function next_revision(text),
   check_in(uuid, text, bigint, text, jsonb),
   add_file(text, text, item_type, text, text, text, bigint, text, numeric, text, text, jsonb),
-  version_tree(uuid), revision_tree(uuid, text) to pdm_app;
+  version_tree(uuid), revision_tree(uuid, text), latest_tree(uuid) to pdm_app;

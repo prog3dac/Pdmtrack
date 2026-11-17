@@ -34,7 +34,7 @@ Tutti sotto `/api`, tutti richiedono login. Errori come `application/problem+jso
 | `PATCH /items/{code}` | descrizione, materiale, massa |
 | `GET /items/{code}/bom` | distinta esplosa e massa totale |
 | `GET /items/{code}/where-used` | assiemi che usano l'articolo |
-| `GET /items/{code}/tree?revision=` | file e versioni esatte da scaricare per aprire la revisione |
+| `GET /items/{code}/tree?revision=&latest=` | file da scaricare: `latest=true` ultima versione di tutto, `revision=B` versioni esatte della revisione |
 | `PUT /blobs/{sha256}` | carica il contenuto; il server ricalcola l'hash |
 | `HEAD`/`GET /blobs/{sha256}` | verifica o scarica il contenuto |
 | `POST /items` | nuovo file nel vault (`add_file`); il contenuto deve essere gia' caricato |
@@ -46,4 +46,4 @@ Tutti sotto `/api`, tutti richiedono login. Errori come `application/problem+jso
 
 ## Test
 
-`dotnet test api/Pdmtrack.sln` crea un database temporaneo da `db/`, avvia l'API collegata come `pdm_api` e prova gli endpoint. Connessione amministrativa da `PDM_TEST_ADMIN` (predefinita `Host=localhost;Username=postgres;Password=postgres`).
+`dotnet test Pdmtrack.sln` crea un database temporaneo da `db/`, avvia l'API collegata come `pdm_api` e prova gli endpoint. Connessione amministrativa da `PDM_TEST_ADMIN` (predefinita `Host=localhost;Username=postgres;Password=postgres`).

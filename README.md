@@ -4,7 +4,7 @@ PDM (Product Data Management) per la gestione di file e archivi SolidWorks: arti
 
 ## Stato
 
-Fase 1 in corso: database PostgreSQL (`db/`), API REST ASP.NET Core (`api/`) e interfaccia web in sola lettura (`web/`). Il prototipo cliccabile originale resta in `prototype/index.html`.
+Fase 1 in corso: database PostgreSQL (`db/`), API REST ASP.NET Core (`api/`) interfaccia web in sola lettura (`web/`) e client Windows da riga di comando (`client/`). Il prototipo cliccabile originale resta in `prototype/index.html`.
 
 ## Database
 
@@ -13,7 +13,7 @@ Schema PostgreSQL 16 in `db/migrations/`, dati di esempio in `db/seed.sql`, dett
 - Tabelle: `items`, `item_revisions`, `files`, `file_versions`, `file_refs`, `bom_lines`, `item_events`, `ecos`, `eco_items`, `eco_approvals`, `app_users`.
 - Funzioni: `add_file`, `check_out`, `check_out_many`, `check_in`, `undo_check_out`, `force_unlock`, `transition_item`, `approve_eco`, `bom_explode` (distinta multilivello), `item_mass`, `version_tree` e `revision_tree` (file e versioni esatte da scaricare), `next_revision`; vista `where_used`.
 - L'utente si ricava da `current_app_user()`, mai da un parametro; le scritture passano solo dalle funzioni.
-- Test: `tests/run.sh` per il database, `dotnet test api/Pdmtrack.sln` per l'API (entrambi in GitHub Actions).
+- Test: `tests/run.sh` per il database, `dotnet test Pdmtrack.sln` per API e client (entrambi in GitHub Actions).
 
 ## API
 
@@ -22,6 +22,10 @@ API REST in ASP.NET Core (.NET 8) in `api/`: articoli, distinta, where-used, che
 ## Interfaccia web
 
 Next.js in `web/`, esportata come sito statico e servita dall'API. Dettagli in [`web/README.md`](web/README.md).
+
+## Client Windows
+
+`pdm.exe` in `client/`: cartella di lavoro locale, get, check-out, check-in, annulla, aggiunta di nuovi file. Dettagli in [`client/README.md`](client/README.md).
 
 ## Roadmap
 

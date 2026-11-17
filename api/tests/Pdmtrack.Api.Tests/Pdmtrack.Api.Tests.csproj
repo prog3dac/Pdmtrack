@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Pdmtrack.Api\Pdmtrack.Api.csproj" />
+    <ProjectReference Include="..\..\..\client\src\Pdmtrack.Client\Pdmtrack.Client.csproj" />
   </ItemGroup>
 
 </Project>
