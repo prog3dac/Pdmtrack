@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vaultline PDM</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: sidebar di navigazione + tabella articoli a sinistra + pannello di dettaglio a destra (stile gestionale BOM). */
+:root{
+  --bg:#F2F3F7; --surface:#FFFFFF; --surface2:#E9EBF1; --line:#D9DCE5;
+  --fg:#171A22; --muted:#5B6275; --accent:#3F46C9; --accent-fg:#FFFFFF; --accent-soft:#E5E6F9;
+  --ok:#17703F; --ok-bg:#DAF1E3; --warn:#8F5200; --warn-bg:#FAEACA;
+  --info:#23509B; --info-bg:#DCE8FA; --neu:#5B6275; --neu-bg:#E4E6ED;
+  --bad:#B42318; --bad-bg:#FBDFDB; --side:#1B1E2B; --side-fg:#C9CDDC; --side-act:#2B3045;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1118; --surface:#171A23; --surface2:#212533; --line:#2A2F40;
+  --fg:#E7E9F0; --muted:#98A0B4; --accent:#9097FF; --accent-fg:#10122B; --accent-soft:#25294B;
+  --ok:#5ED39A; --ok-bg:#15301F; --warn:#F0B45A; --warn-bg:#3A2C10;
+  --info:#7DB0F5; --info-bg:#16294A; --neu:#98A0B4; --neu-bg:#262A37;
+  --bad:#F28B82; --bad-bg:#3D1A17; --side:#0A0C12; --side-fg:#AEB4C8; --side-act:#1D2233; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1118; --surface:#171A23; --surface2:#212533; --line:#2A2F40;
+  --fg:#E7E9F0; --muted:#98A0B4; --accent:#9097FF; --accent-fg:#10122B; --accent-soft:#25294B;
+  --ok:#5ED39A; --ok-bg:#15301F; --warn:#F0B45A; --warn-bg:#3A2C10;
+  --info:#7DB0F5; --info-bg:#16294A; --neu:#98A0B4; --neu-bg:#262A37;
+  --bad:#F28B82; --bad-bg:#3D1A17; --side:#0A0C12; --side-fg:#AEB4C8; --side-act:#1D2233; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.45;padding-block:0;padding-left:0;padding-right:0}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+.app{display:grid;grid-template-columns:216px minmax(0,1fr);height:100%}
+.side{background:var(--side);color:var(--side-fg);display:flex;flex-direction:column;gap:20px;padding:16px 12px;min-height:0;padding-left:max(12px,env(safe-area-inset-left,0px))}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;font-weight:600;font-size:15px;letter-spacing:.01em;padding:4px 6px}
+.brand svg{flex:none}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:10px;background:none;border:0;color:inherit;text-align:left;padding:8px 10px;border-radius:6px}
+.nav button:hover{background:var(--side-act)}
+.nav button[aria-current="true"]{background:var(--side-act);color:#fff}
+.nav .cnt{margin-left:auto;font-family:var(--mono);font-size:11.5px;opacity:.75}
+.nav svg{flex:none;opacity:.85}
+.side .foot{margin-top:auto;font-size:12px;display:flex;flex-direction:column;gap:10px}
+.me{display:flex;align-items:center;gap:8px}
+.av{width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;font-size:11px;font-weight:600}
+.main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.top{display:flex;flex-direction:column;gap:12px;padding:16px 20px 12px;padding-right:max(20px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);background:var(--surface)}
+.top h1{margin:0;font-size:18px;font-weight:600;letter-spacing:-.005em}
+.top .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.search{flex:1 1 220px;max-width:340px;display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:0 10px}
+.search input{flex:1;min-width:0;background:none;border:0;padding:7px 0;outline:0}
+.search:focus-within{border-color:var(--accent)}
+select{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:none;border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:12.5px;color:var(--muted)}
+.chip:hover{border-color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:500}
+.work{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);overflow:hidden}
+.work.open{grid-template-columns:minmax(0,1fr) minmax(380px,480px)}
+.pane{overflow:auto;padding:16px 20px 28px;padding-right:max(20px,env(safe-area-inset-right,0px))}
+.work.open .pane{padding-right:20px}
+.stats{display:flex;flex-wrap:wrap;gap:6px 22px;color:var(--muted);font-size:12.5px;margin-bottom:12px}
+.stats b{color:var(--fg);font-weight:600;font-variant-numeric:tabular-nums}
+.tbl{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.tw{overflow-x:auto;border-radius:8px}
+.tbl th{position:sticky;top:0;background:var(--surface2);text-align:left;font-size:11.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:8px 12px;white-space:nowrap}
+.tbl td{padding:9px 12px;border-top:1px solid var(--line);vertical-align:middle}
+.tbl tbody tr[data-act]{cursor:pointer}
+.tbl tbody tr[data-act]:hover td{background:var(--bg)}
+.tbl tr.on td{background:var(--accent-soft)}
+.tbl tr.grp td{background:var(--surface2);font-size:12px;color:var(--muted);font-family:var(--mono);padding:6px 12px}
+.tbl td.d{max-width:300px}
+.ellip{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:2px 9px 2px 8px;font-size:12px;font-weight:500;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.ok{color:var(--ok);background:var(--ok-bg)}.pill.warn{color:var(--warn);background:var(--warn-bg)}
+.pill.info{color:var(--info);background:var(--info-bg)}.pill.neutral{color:var(--neu);background:var(--neu-bg)}
+.pill.bad{color:var(--bad);background:var(--bad-bg)}
+.tb{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.04em;border-radius:3px;padding:1px 5px;border:1px solid var(--line);color:var(--muted);background:var(--bg)}
+.tb.ASM{color:var(--warn);border-color:currentColor;background:transparent}
+.tb.PRT{color:var(--info);border-color:currentColor;background:transparent}
+.tb.DRW{color:var(--neu);border-color:currentColor;background:transparent}
+.rev{font-family:var(--mono);font-weight:500}
+.lock{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--warn)}
+.lock.me{color:var(--accent)}
+.dim{color:var(--muted)}
+.detail{background:var(--surface);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;min-width:0}
+.dh{padding:16px 18px 0;display:flex;flex-direction:column;gap:10px}
+.dh .row{display:flex;gap:10px;align-items:flex-start}
+.dh h2{margin:0;font-size:16px;font-weight:600;line-height:1.3}
+.x{margin-left:auto;background:none;border:1px solid var(--line);border-radius:6px;width:28px;height:28px;display:grid;place-items:center;color:var(--muted);flex:none}
+.x:hover{color:var(--fg);border-color:var(--muted)}
+.tabs{display:flex;gap:2px;margin-top:6px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 10px;color:var(--muted);white-space:nowrap;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--fg);border-color:var(--accent);font-weight:500}
+.db{flex:1;overflow:auto;padding:16px 18px 24px;display:flex;flex-direction:column;gap:16px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 12px;font-weight:500;display:inline-flex;align-items:center;gap:7px}
+.btn:hover{border-color:var(--muted)}
+.btn.pri{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn.bad{color:var(--bad)}
+.kv{display:grid;grid-template-columns:150px minmax(0,1fr);gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.kv>div{padding:7px 12px;border-top:1px solid var(--line);min-width:0}
+.kv>div:nth-child(-n+2){border-top:0}
+.kv>.k{background:var(--surface2);color:var(--muted);font-size:12.5px}
+h3{margin:0;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.sw{font-family:var(--mono);font-size:10px;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:0 4px;margin-left:6px;vertical-align:1px}
+.thumb{display:flex;gap:14px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--bg)}
+.thumb svg{flex:none}
+.thumb small{color:var(--muted);display:block;font-size:12px}
+.bom td,.bom th{padding:6px 8px}
+.bom .tbl td{padding:6px 10px}
+.ind{display:inline-flex;align-items:center;gap:4px}
+.car{background:none;border:0;width:18px;height:18px;display:inline-grid;place-items:center;color:var(--muted);padding:0}
+.sp{display:inline-block;width:18px}
+.lk{background:none;border:0;padding:0;color:var(--accent);text-align:left;text-decoration:none}
+.lk:hover{text-decoration:underline}
+.tot{display:flex;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:8px;font-weight:500}
+.note{color:var(--muted);font-size:13px}
+.empty{border:1px dashed var(--line);border-radius:8px;padding:22px;text-align:center;color:var(--muted)}
+.ci{display:flex;gap:8px;flex-wrap:wrap}
+.ci input{flex:1 1 200px;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 10px}
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.tl li{display:grid;grid-template-columns:86px minmax(0,1fr);gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.tl li:first-child{border-top:0}
+.tl .dt{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.eco{background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.eco>.r{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 16px;padding:14px 16px;border-top:1px solid var(--line)}
+.eco>.r:first-child{border-top:0}
+.eco .t{font-weight:500}
+.eco .meta{color:var(--muted);font-size:12.5px;display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:2px}
+.eco .its{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.eco .its button{font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:2px 7px}
+.eco .its button:hover{border-color:var(--accent);color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:50;max-width:calc(100vw - 32px)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (max-width:1100px){
+  .work.open{grid-template-columns:minmax(0,1fr)}
+  .work.open .pane{display:none}
+}
+@media (max-width:820px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .side{flex-direction:row;align-items:center;gap:8px;padding:8px 12px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));overflow-x:auto}
+  .brand span{display:none}
+  .nav{flex-direction:row}.nav button{padding:7px 10px;white-space:nowrap}.nav .cnt{display:none}
+  .side .foot{display:none}
+  .top{padding:12px 16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .pane{padding:12px 16px 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .work.open .pane{padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .hm{display:none}
+  .kv{grid-template-columns:110px minmax(0,1fr)}
+  .eco>.r{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 3h13l5 5v13H3z" fill="#8E94FF"/><path d="M16 3v5h5" fill="#1B1E2B" opacity=".35"/><path d="M8 12h8M8 16h5" stroke="#1B1E2B" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span>Vaultline</span>
+    </div>
+    <nav class="nav" id="nav" aria-label="Sezioni"></nav>
+    <div class="foot">
+      <div class="me"><div class="av">AC</div><div>A. Cavani<br><span style="opacity:.7">Progettista</span></div></div>
+      <div style="opacity:.6">Prototipo con dati di esempio</div>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="top">
+      <div><h1 id="vt"></h1><div class="sub" id="vs"></div></div>
+      <div id="tools"></div>
+    </header>
+    <div class="work" id="work">
+      <section class="pane" id="content"></section>
+      <aside class="detail" id="detail" hidden></aside>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const ME='A. Cavani', TODAY='2026-11-17';
+const ST={wip:['In lavorazione','info'],review:['In approvazione','warn'],rel:['Rilasciato','ok'],obs:['Obsoleto','neutral']};
+const TY={PRT:'Parte',ASM:'Assieme',DRW:'Disegno'};
+const EXT={PRT:'.SLDPRT',ASM:'.SLDASM',DRW:'.SLDDRW'};
+const P='\\\\PDM\\Pompe\\PG-25\\';
+function it(code,d,t,rev,st,o){return Object.assign({code,d,t,rev,st,mat:'',mass:0,kids:[],ref:'',folder:'',size:1,ver:1,lock:null,mod:'2026-10-01',by:'M. Rossi',vers:null,hist:null},o)}
+const items=[
+ it('100-0001','Gruppo pompa ad ingranaggi PG-25','ASM','C','review',{kids:[['110-0001',1],['120-0001',1],['120-0002',1],['130-0001',1],['190-0001',1]],folder:P,size:2.4,ver:14,mod:'2026-11-14',by:'A. Cavani'}),
+ it('100-0001-D','Disegno gruppo pompa PG-25','DRW','C','review',{ref:'100-0001',folder:P+'Disegni\\',size:0.9,ver:9,mod:'2026-11-14',by:'A. Cavani'}),
+ it('110-0001','Corpo pompa completo','ASM','B','rel',{kids:[['111-0001',1],['111-0002',1],['150-0001',2],['150-0002',8]],folder:P+'Corpo\\',size:1.7,ver:8,mod:'2026-09-22',by:'M. Rossi'}),
+ it('111-0001','Corpo pompa','PRT','B','rel',{mat:'Ghisa EN-GJL-250',mass:4.82,folder:P+'Corpo\\',size:3.1,ver:11,mod:'2026-09-19',by:'M. Rossi'}),
+ it('111-0001-D','Disegno corpo pompa','DRW','B','rel',{ref:'111-0001',folder:P+'Corpo\\Disegni\\',size:0.6,ver:7,mod:'2026-09-20',by:'M. Rossi'}),
+ it('111-0002','Coperchio pompa','PRT','B','wip',{mat:'Ghisa EN-GJL-250',mass:1.36,folder:P+'Corpo\\',size:1.4,ver:6,lock:'M. Rossi',mod:'2026-11-12',by:'M. Rossi'}),
+ it('120-0001','Albero conduttore','PRT','C','wip',{mat:'42CrMo4 bonificato',mass:0.74,folder:P+'Alberi\\',size:0.8,ver:12,lock:ME,mod:'2026-11-16',by:'A. Cavani'}),
+ it('120-0001-D','Disegno albero conduttore','DRW','C','wip',{ref:'120-0001',folder:P+'Alberi\\Disegni\\',size:0.4,ver:6,mod:'2026-11-10',by:'A. Cavani'}),
+ it('120-0002','Albero condotto','PRT','A','rel',{mat:'42CrMo4 bonificato',mass:0.61,folder:P+'Alberi\\',size:0.7,ver:4,mod:'2026-07-08',by:'L. Bianchi'}),
+ it('130-0001','Gruppo tenuta albero','ASM','A','rel',{kids:[['131-0001',1],['131-0002',1]],folder:P+'Tenuta\\',size:0.5,ver:3,mod:'2026-07-30',by:'L. Bianchi'}),
+ it('131-0001','Anello di tenuta radiale 18x30x7','PRT','A','rel',{mat:'NBR 70 Shore',mass:0.02,folder:P+'Tenuta\\',size:0.2,ver:2,mod:'2026-07-30',by:'L. Bianchi'}),
+ it('131-0002','Flangia di tenuta','PRT','A','rel',{mat:'AISI 304',mass:0.38,folder:P+'Tenuta\\',size:0.5,ver:3,mod:'2026-07-29',by:'L. Bianchi'}),
+ it('150-0001','Spina di centraggio Ø8x20','PRT','A','rel',{mat:'C45 rettificato',mass:0.008,folder:P+'Normalizzati\\',size:0.1,ver:1,mod:'2026-03-02',by:'M. Rossi'}),
+ it('150-0002','Vite TCEI M8x25 UNI 5931','PRT','A','rel',{mat:'Acciaio 8.8 zincato',mass:0.021,folder:P+'Normalizzati\\',size:0.1,ver:1,mod:'2026-03-02',by:'M. Rossi'}),
+ it('150-0003','Rondella Grower M8','PRT','A','rel',{mat:'Acciaio armonico',mass:0.003,folder:P+'Normalizzati\\',size:0.1,ver:1,mod:'2026-03-02',by:'M. Rossi'}),
+ it('190-0001','Kit viteria coperchio','ASM','A','rel',{kids:[['150-0002',6],['150-0003',6]],folder:P+'Normalizzati\\',size:0.3,ver:2,mod:'2026-05-14',by:'L. Bianchi'}),
+ it('111-0003','Tappo di scarico G1/4 (sostituito)','PRT','A','obs',{mat:'Acciaio zincato',mass:0.045,folder:P+'Corpo\\Archivio\\',size:0.2,ver:2,mod:'2026-02-11',by:'M. Rossi'})
+];
+const byCode=Object.fromEntries(items.map(i=>[i.code,i]));
+const USERS=['M. Rossi','L. Bianchi','A. Cavani'];
+const NOTES=['Aggiornate quote e tolleranze','Aggiunto raccordo','Corretto riferimento esterno','Modifica spessore parete','Aggiornate proprietà personalizzate','Revisione dopo prototipo','Ricostruzione feature'];
+items.forEach(i=>{
+  const n=i.ver; i.vers=[];
+  for(let k=0;k<Math.min(n,5);k++){
+    const d=new Date(i.mod+'T00:00:00Z'); d.setUTCDate(d.getUTCDate()-k*9);
+    i.vers.push([n-k,d.toISOString().slice(0,10),k===0?i.by:USERS[(n+k)%3],k===n-1?'Prima versione':NOTES[(n*3+k)%NOTES.length]]);
+  }
+  i.hist=[];
+  if(i.st==='rel')i.hist.push([i.mod,i.by,'Rilasciato in revisione '+i.rev]);
+  if(i.st==='review')i.hist.push([i.mod,i.by,'Inviato in approvazione (rev '+i.rev+')']);
+  if(i.st==='obs')i.hist.push([i.mod,i.by,'Reso obsoleto']);
+  if(i.lock)i.hist.unshift([i.mod,i.lock,'Check-out eseguito']);
+  i.hist.push([i.vers[i.vers.length-1][1],'M. Rossi','Articolo creato da file SolidWorks']);
+});
+const ecos=[
+ {id:'ECO-0042',t:'Albero conduttore da Ø18 a Ø20 per maggiore rigidità',st:'review',by:'A. Cavani',d:'2026-11-12',items:['120-0001','100-0001'],apr:[['M. Rossi','ok'],['L. Bianchi','wait']]},
+ {id:'ECO-0041',t:'Nuovo trattamento superficiale coperchio pompa',st:'rel',by:'M. Rossi',d:'2026-10-28',items:['111-0002'],apr:[['A. Cavani','ok'],['L. Bianchi','ok']]},
+ {id:'ECO-0040',t:'Sostituzione tappo di scarico con versione G1/4 inox',st:'obs',by:'L. Bianchi',d:'2026-02-09',items:['111-0003'],apr:[['M. Rossi','ok'],['A. Cavani','ok']]}
+];
+const ECO_ST={review:['In approvazione','warn'],rel:['Approvata','ok'],obs:['Chiusa','neutral']};
+
+const S={view:'items',filter:'all',type:'all',q:'',sel:null,tab:'info',collapsed:new Set()};
+const $=s=>document.querySelector(s);
+const fmt=d=>d.split('-').reverse().join('/');
+const fname=i=>i.code+EXT[i.t];
+const pill=(c,l)=>`<span class="pill ${c}">${l}</span>`;
+const spill=s=>pill(ST[s][1],ST[s][0]);
+const mass=i=>i.kids.length?i.kids.reduce((a,[c,q])=>a+q*mass(byCode[c]),0):i.mass;
+const kg=n=>n.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:3})+' kg';
+const parents=c=>items.filter(i=>i.kids.some(k=>k[0]===c));
+const ecoOf=c=>ecos.filter(e=>e.items.includes(c));
+const lockI='<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>';
+const lockCell=i=>i.lock?`<span class="lock ${i.lock===ME?'me':''}">${lockI}${i.lock===ME?'Tu':i.lock}</span>`:'<span class="dim">—</span>';
+const IC={
+ items:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h12M2 12h8"/></svg>',
+ vault:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4.5A1.5 1.5 0 0 1 3.5 3H6l1.5 2h5A1.5 1.5 0 0 1 14 6.5v5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5z"/></svg>',
+ eco:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8.5 6.5 12 13 4.5"/></svg>',
+ x:'<svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.6" fill="none"><path d="M2 2l8 8M10 2l-8 8"/></svg>',
+ car:'<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M2 3l3 4 3-4z"/></svg>',
+ carc:'<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M3 2l4 3-4 3z"/></svg>',
+ sr:'<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg>'
+};
+
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('show'),2600)}
+
+function renderNav(){
+  const nOut=items.filter(i=>i.lock).length, nEco=ecos.filter(e=>e.st==='review').length;
+  const rows=[['items','Articoli',items.length],['vault','Vault file',nOut||''],['eco','Modifiche (ECO)',nEco||'']];
+  $('#nav').innerHTML=rows.map(([k,l,c])=>`<button data-act="view" data-v="${k}" aria-current="${S.view===k}">${IC[k]}<span>${l}</span><span class="cnt">${c}</span></button>`).join('');
+}
+const TITLES={items:['Articoli','Anagrafica con revisioni, stato di rilascio e file SolidWorks collegati'],vault:['Vault file','Archivio dei file .SLDPRT, .SLDASM e .SLDDRW con versioni e blocchi'],eco:['Modifiche (ECO)','Richieste di modifica tecnica e relative approvazioni']};
+function renderTools(){
+  $('#vt').textContent=TITLES[S.view][0]; $('#vs').textContent=TITLES[S.view][1];
+  let h='';
+  if(S.view!=='eco'){
+    h+=`<div class="tools"><label class="search">${IC.sr}<input id="q" type="search" placeholder="Cerca codice, descrizione, materiale" value="${S.q}" aria-label="Cerca"></label>`;
+    if(S.view==='items'){
+      h+=`<select id="ty" aria-label="Tipo"><option value="all">Tutti i tipi</option>${Object.entries(TY).map(([k,v])=>`<option value="${k}"${S.type===k?' selected':''}>${v}</option>`).join('')}</select>`;
+    }
+    h+='</div>';
+    if(S.view==='items'){
+      const c=k=>k==='all'?items.length:items.filter(i=>i.st===k).length;
+      h+=`<div class="chips" style="margin-top:10px">`+[['all','Tutti'],...Object.entries(ST).map(([k,v])=>[k,v[0]])].map(([k,l])=>`<button class="chip" data-act="filter" data-v="${k}" aria-pressed="${S.filter===k}">${l} · ${c(k)}</button>`).join('')+'</div>';
+    }
+  }
+  $('#tools').innerHTML=h;
+  const q=$('#q'); if(q)q.addEventListener('input',e=>{S.q=e.target.value;renderContent()});
+  const ty=$('#ty'); if(ty)ty.addEventListener('change',e=>{S.type=e.target.value;renderContent()});
+}
+function match(i){
+  const q=S.q.trim().toLowerCase();
+  return !q||(i.code+' '+i.d+' '+i.mat).toLowerCase().includes(q);
+}
+function renderContent(){
+  renderNav();
+  const c=$('#content');
+  if(S.view==='items'){
+    const rows=items.filter(i=>(S.filter==='all'||i.st===S.filter)&&(S.type==='all'||i.t===S.type)&&match(i));
+    const out=items.filter(i=>i.lock).length, rv=items.filter(i=>i.st==='review').length;
+    c.innerHTML=`<div class="stats"><span><b>${rows.length}</b> articoli mostrati</span><span><b>${out}</b> file in check-out</span><span><b>${rv}</b> in approvazione</span></div>
+    <div class="tw"><table class="tbl"><thead><tr><th>Codice</th><th>Descrizione</th><th class="hm">Tipo</th><th>Rev</th><th>Stato</th><th class="hm">Check-out</th><th class="hm">Modificato</th></tr></thead><tbody>`+
+    (rows.length?rows.map(i=>`<tr data-act="sel" data-c="${i.code}" class="${S.sel===i.code?'on':''}"><td class="mono">${i.code}</td><td class="d"><div class="ellip">${i.d}</div></td><td class="hm"><span class="tb ${i.t}">${i.t}</span></td><td class="rev">${i.rev}</td><td>${spill(i.st)}</td><td class="hm">${lockCell(i)}</td><td class="hm dim num">${fmt(i.mod)}</td></tr>`).join(''):`<tr><td colspan="7"><div class="empty">Nessun articolo corrisponde ai filtri.</div></td></tr>`)+
+    '</tbody></table></div>';
+  }else if(S.view==='vault'){
+    const rows=items.filter(match).sort((a,b)=>a.folder.localeCompare(b.folder)||a.code.localeCompare(b.code));
+    const tot=items.reduce((a,i)=>a+i.size,0);
+    let h=`<div class="stats"><span><b>${items.length}</b> file nel vault</span><span><b>${tot.toFixed(1).replace('.',',')} MB</b> occupati</span><span><b>${items.filter(i=>i.lock).length}</b> in check-out</span></div><div class="tw"><table class="tbl"><thead><tr><th>Nome file</th><th>Ver.</th><th class="hm">Rev</th><th class="hm">Dimensione</th><th>Check-out</th><th class="hm">Ultima modifica</th></tr></thead><tbody>`;
+    let cur='';
+    rows.forEach(i=>{
+      if(i.folder!==cur){cur=i.folder;h+=`<tr class="grp"><td colspan="6">${cur}</td></tr>`}
+      h+=`<tr data-act="sel" data-c="${i.code}" class="${S.sel===i.code?'on':''}"><td><span class="tb ${i.t}" style="margin-right:8px">${i.t}</span><span class="mono">${fname(i)}</span></td><td class="mono">v${i.ver}</td><td class="hm rev">${i.rev}</td><td class="hm dim num">${i.size.toFixed(1).replace('.',',')} MB</td><td>${lockCell(i)}</td><td class="hm dim">${fmt(i.mod)} · ${i.by}</td></tr>`;
+    });
+    c.innerHTML=h+'</tbody></table></div>'+(rows.length?'':'<div class="empty">Nessun file trovato.</div>');
+  }else{
+    c.innerHTML=`<div class="eco">`+ecos.map(e=>`<div class="r"><div><div class="t"><span class="mono">${e.id}</span> &nbsp;${e.t}</div>
+      <div class="meta"><span>Richiesta di ${e.by}</span><span>${fmt(e.d)}</span>${e.apr.map(([n,s])=>`<span style="color:var(--${s==='ok'?'ok':'warn'})">${n}: ${s==='ok'?'approvato':'in attesa'}</span>`).join('')}</div>
+      <div class="its">${e.items.map(x=>`<button data-act="goto" data-c="${x}">${x}</button>`).join('')}</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">${pill(ECO_ST[e.st][1],ECO_ST[e.st][0])}${e.st==='review'?`<button class="btn pri" data-act="eco-ok" data-id="${e.id}">Approva ECO</button>`:''}</div></div>`).join('')+`</div>
+      <p class="note" style="margin-top:12px">Approvando una ECO, gli articoli collegati che sono in approvazione passano a Rilasciato.</p>`;
+  }
+}
+
+function thumb(i){
+  const a='var(--accent)',l='var(--line)',m='var(--muted)';
+  let g;
+  if(i.t==='DRW')g=`<rect x="14" y="8" width="60" height="44" fill="var(--surface)" stroke="${m}" stroke-width="1.4"/><rect x="20" y="14" width="30" height="24" fill="none" stroke="${a}" stroke-width="1.4"/><path d="M50 26h18M20 44h54M52 44v8" stroke="${m}" stroke-width="1"/>`;
+  else{
+    const box=(x,y,s)=>`<path d="M${x} ${y+s*.35}l${s*.5} ${-s*.3}l${s*.5} ${s*.3}v${s*.6}l${-s*.5} ${s*.3}l${-s*.5} ${-s*.3}z" fill="var(--surface)" stroke="${a}" stroke-width="1.4" stroke-linejoin="round"/><path d="M${x} ${y+s*.35}l${s*.5} ${s*.3}l${s*.5} ${-s*.3}M${x+s*.5} ${y+s*.65}v${s*.6}" fill="none" stroke="${a}" stroke-width="1.2"/>`;
+    g=i.t==='ASM'?box(10,6,36)+box(40,14,36)+box(24,26,36):box(22,10,48);
+  }
+  return `<svg width="88" height="60" viewBox="0 0 88 60" aria-hidden="true">${g}</svg>`;
+}
+function renderDetail(){
+  const d=$('#detail'), w=$('#work');
+  const i=byCode[S.sel];
+  if(!i){d.hidden=true;w.classList.remove('open');return}
+  d.hidden=false;w.classList.add('open');
+  const tabs=[['info','Info'],['bom','Distinta'],['where','Where-used'],['file','File'],['hist','Storia']];
+  d.innerHTML=`<div class="dh"><div class="row"><div><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span class="tb ${i.t}">${TY[i.t]}</span><span class="mono">${i.code}</span><span class="rev dim">Rev ${i.rev}</span></div><h2>${i.d}</h2></div><button class="x" data-act="close" aria-label="Chiudi">${IC.x}</button></div>
+  <div>${spill(i.st)}</div>
+  <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" data-act="tab" data-t="${k}" aria-selected="${S.tab===k}">${l}</button>`).join('')}</div></div>
+  <div class="db">${tabBody(i)}</div>`;
+}
+function stateActions(i){
+  const b=[];
+  if(i.st==='wip')b.push(`<button class="btn pri" data-act="st" data-c="${i.code}" data-to="review">Invia in approvazione</button>`);
+  if(i.st==='review')b.push(`<button class="btn pri" data-act="st" data-c="${i.code}" data-to="rel">Approva e rilascia</button>`,`<button class="btn bad" data-act="st" data-c="${i.code}" data-to="wip">Rifiuta</button>`);
+  if(i.st==='rel')b.push(`<button class="btn" data-act="st" data-c="${i.code}" data-to="newrev">Nuova revisione</button>`,`<button class="btn" data-act="st" data-c="${i.code}" data-to="obs">Rendi obsoleto</button>`);
+  if(i.st==='obs')b.push(`<button class="btn" data-act="st" data-c="${i.code}" data-to="wip">Ripristina</button>`);
+  return `<div class="acts">${b.join('')}</div>`;
+}
+function tabBody(i){
+  if(S.tab==='info'){
+    const props=[['Description',i.d],['Material',i.mat||'—'],['Weight',kg(mass(i))],['DrawnBy',i.by],['Revision',i.rev],['PartNumber',i.code]];
+    const ec=ecoOf(i.code);
+    return `${stateActions(i)}
+    <div class="thumb">${thumb(i)}<div><b class="mono">${fname(i)}</b><small>Miniatura estratta dal file · v${i.ver}</small></div></div>
+    <h3>Proprietà personalizzate<span class="sw">SW</span></h3>
+    <div class="kv">${props.map(([k,v])=>`<div class="k mono">${k}</div><div>${v}</div>`).join('')}</div>
+    <h3>Collegamenti</h3>
+    <div class="kv"><div class="k">Modifiche</div><div>${ec.length?ec.map(e=>`<span class="mono">${e.id}</span> ${pill(ECO_ST[e.st][1],ECO_ST[e.st][0])}`).join('<br>'):'<span class="dim">Nessuna</span>'}</div>
+    <div class="k">${i.t==='DRW'?'Modello di riferimento':'Usato in'}</div><div>${i.t==='DRW'?`<button class="lk mono" data-act="goto" data-c="${i.ref}">${i.ref}</button>`:(parents(i.code).length+' assiemi')}</div></div>`;
+  }
+  if(S.tab==='bom'){
+    if(i.t==='DRW')return `<div class="empty">I disegni non hanno una distinta.<br>Riferiscono il modello <button class="lk mono" data-act="goto" data-c="${i.ref}">${i.ref}</button>.</div>`;
+    if(!i.kids.length)return `<div class="empty">Parte singola: nessun componente.</div>`;
+    const rows=[];
+    (function walk(c,lv,path){
+      byCode[c].kids.forEach(([k,q])=>{
+        const p=path+'/'+k, kid=byCode[k], has=kid.kids.length;
+        rows.push(`<tr><td><span class="ind" style="padding-left:${lv*16}px">${has?`<button class="car" data-act="tog" data-p="${p}" aria-label="Espandi o comprimi">${S.collapsed.has(p)?IC.carc:IC.car}</button>`:'<span class="sp"></span>'}<button class="lk mono" data-act="goto" data-c="${k}">${k}</button></span></td><td class="d"><div class="ellip" style="max-width:170px">${kid.d}</div></td><td class="num">${q}</td><td class="num dim hm">${kg(q*mass(kid))}</td></tr>`);
+        if(has&&!S.collapsed.has(p))walk(k,lv+1,p);
+      });
+    })(i.code,0,i.code);
+    return `<div class="tw"><table class="tbl"><thead><tr><th>Codice</th><th>Descrizione</th><th>Q.tà</th><th class="hm">Massa</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
+    <div class="tot"><span>Massa totale assieme</span><span class="num">${kg(mass(i))}</span></div>
+    <p class="note">La distinta è letta dai riferimenti dell'assieme nel file .SLDASM e aggiornata a ogni check-in.</p>`;
+  }
+  if(S.tab==='where'){
+    const p=parents(i.code);
+    if(!p.length)return `<div class="empty">Questo articolo non è usato in nessun assieme.</div>`;
+    return `<div class="tw"><table class="tbl"><thead><tr><th>Assieme</th><th>Descrizione</th><th>Q.tà</th><th>Stato</th></tr></thead><tbody>${p.map(a=>`<tr data-act="goto" data-c="${a.code}"><td class="mono">${a.code}</td><td class="d"><div class="ellip" style="max-width:150px">${a.d}</div></td><td class="num">${a.kids.find(k=>k[0]===i.code)[1]}</td><td>${spill(a.st)}</td></tr>`).join('')}</tbody></table></div>
+    <p class="note">Prima di modificare questo articolo controlla l'effetto sugli assiemi elencati.</p>`;
+  }
+  if(S.tab==='file'){
+    let act='';
+    if(i.lock===ME)act=`<div class="ci"><input id="msg" placeholder="Commento di check-in" aria-label="Commento di check-in"><button class="btn pri" data-act="ci" data-c="${i.code}">Check-in</button><button class="btn" data-act="undo" data-c="${i.code}">Annulla check-out</button></div>`;
+    else if(i.lock)act=`<div class="acts"><button class="btn" disabled>${lockI} Bloccato da ${i.lock}</button></div>`;
+    else if(i.st==='rel'||i.st==='obs')act=`<div class="note">Il file è ${i.st==='rel'?'rilasciato':'obsoleto'} e in sola lettura. ${i.st==='rel'?'Crea una nuova revisione per modificarlo.':''}</div>`;
+    else act=`<div class="acts"><button class="btn pri" data-act="co" data-c="${i.code}">${lockI} Check-out</button></div>`;
+    return `<div class="kv"><div class="k">File</div><div class="mono">${fname(i)}</div><div class="k">Percorso</div><div class="mono" style="word-break:break-all">${i.folder}</div><div class="k">Versione</div><div>v${i.ver} · ${i.size.toFixed(1).replace('.',',')} MB</div><div class="k">Check-out</div><div>${lockCell(i)}</div></div>
+    ${act}<h3>Versioni</h3>
+    <div class="tw"><table class="tbl"><thead><tr><th>Ver.</th><th>Data</th><th>Utente</th><th>Commento</th></tr></thead><tbody>${i.vers.map(v=>`<tr><td class="mono">v${v[0]}</td><td class="num">${fmt(v[1])}</td><td>${v[2]}</td><td>${v[3]}</td></tr>`).join('')}</tbody></table></div>`;
+  }
+  return `<ul class="tl">${i.hist.map(h=>`<li><span class="dt">${fmt(h[0])}</span><span><b style="font-weight:500">${h[1]}</b> · ${h[2]}</span></li>`).join('')}</ul>`;
+}
+const nextRev=r=>String.fromCharCode(r.charCodeAt(0)+1);
+function log(i,t){i.hist.unshift([TODAY,ME,t])}
+function refresh(){renderNav();renderContent();renderDetail()}
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]'); if(!el)return;
+  const a=el.dataset.act, c=el.dataset.c, i=c&&byCode[c];
+  if(a==='view'){S.view=el.dataset.v;S.q='';renderTools();renderContent();return}
+  if(a==='filter'){S.filter=el.dataset.v;renderTools();renderContent();return}
+  if(a==='sel'){S.sel=c;S.tab=S.view==='vault'?'file':'info';S.collapsed.clear();renderContent();renderDetail();return}
+  if(a==='goto'){if(S.view==='eco'){S.view='items';renderTools()}S.sel=c;S.tab='info';S.filter='all';S.type='all';S.q='';renderTools();renderContent();renderDetail();return}
+  if(a==='close'){S.sel=null;renderContent();renderDetail();return}
+  if(a==='tab'){S.tab=el.dataset.t;renderDetail();return}
+  if(a==='tog'){const p=el.dataset.p;S.collapsed.has(p)?S.collapsed.delete(p):S.collapsed.add(p);renderDetail();return}
+  if(a==='co'){i.lock=ME;log(i,'Check-out eseguito');toast('File in check-out: solo tu puoi modificarlo');refresh();return}
+  if(a==='undo'){i.lock=null;log(i,'Check-out annullato');toast('Check-out annullato');refresh();return}
+  if(a==='ci'){
+    const m=($('#msg').value||'').trim()||'Aggiornamento';
+    i.ver++;i.mod=TODAY;i.by=ME;i.lock=null;i.size=+(i.size*1.03).toFixed(2);
+    i.vers.unshift([i.ver,TODAY,ME,m]);log(i,'Check-in v'+i.ver+': '+m);
+    toast('Check-in completato, versione v'+i.ver);refresh();return}
+  if(a==='st'){
+    const to=el.dataset.to;
+    if(i.lock&&to!=='obs'){toast('Esegui prima il check-in del file');return}
+    if(to==='review'){i.st='review';log(i,'Inviato in approvazione (rev '+i.rev+')');toast('Inviato in approvazione')}
+    else if(to==='rel'){i.st='rel';log(i,'Rilasciato in revisione '+i.rev);toast('Rilasciato: PDF e STEP verranno generati dal server')}
+    else if(to==='wip'){const was=i.st;i.st='wip';log(i,was==='obs'?'Ripristinato':'Riportato in lavorazione');toast('Riportato in lavorazione')}
+    else if(to==='newrev'){i.rev=nextRev(i.rev);i.st='wip';log(i,'Creata revisione '+i.rev);toast('Nuova revisione '+i.rev+' in lavorazione')}
+    else if(to==='obs'){i.st='obs';log(i,'Reso obsoleto');toast('Articolo reso obsoleto')}
+    refresh();return}
+  if(a==='eco-ok'){
+    const e=ecos.find(x=>x.id===el.dataset.id);let n=0;
+    e.st='rel';e.apr.forEach(p=>p[1]='ok');
+    e.items.forEach(x=>{const t=byCode[x];if(t.st==='review'){t.st='rel';log(t,'Rilasciato con '+e.id);n++}});
+    toast(e.id+' approvata, '+n+(n===1?' articolo rilasciato':' articoli rilasciati'));refresh();return}
+});
+renderTools();renderContent();renderDetail();
+</script>
+</body>
+</html>
