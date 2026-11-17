@@ -8,12 +8,12 @@ Prototipo di interfaccia cliccabile con dati di esempio, senza backend: `prototy
 
 ## Database
 
-Schema PostgreSQL (compatibile Supabase) in `supabase/migrations/`, dati di esempio in `supabase/seed.sql`.
+Schema PostgreSQL 16 in `db/migrations/`, dati di esempio in `db/seed.sql`, dettagli e note per un futuro passaggio a Supabase in [`db/README.md`](db/README.md).
 
 - Tabelle: `items`, `files`, `file_versions`, `bom_lines`, `item_events`, `ecos`, `eco_items`, `eco_approvals`, `app_users`.
-- Funzioni: `bom_explode` (distinta multilivello), `item_mass`, `check_out`, `check_in`, `transition_item`, `approve_eco`; vista `where_used`.
-- RLS attiva, per ora con accesso completo agli utenti autenticati.
-- Testato su PostgreSQL 16 locale: migrazione, seed, massa dell'assieme (8,258 kg) e le funzioni di workflow.
+- Funzioni: `add_file`, `check_out`, `check_out_many`, `check_in`, `undo_check_out`, `force_unlock`, `transition_item`, `approve_eco`, `bom_explode` (distinta multilivello), `item_mass`; vista `where_used`.
+- L'utente si ricava da `current_app_user()`, mai da un parametro; le scritture passano solo dalle funzioni.
+- Test: `tests/run.sh` (anche in GitHub Actions).
 
 ## Roadmap
 
@@ -24,6 +24,6 @@ Schema PostgreSQL (compatibile Supabase) in `supabase/migrations/`, dati di esem
 ## Architettura prevista
 
 - Frontend web (React/Next.js)
-- Backend: Postgres + storage oggetti + API REST
+- Backend: PostgreSQL + storage oggetti S3-compatibile + API REST (Supabase come possibile destinazione futura)
 - Worker Windows per lettura dei file SolidWorks
 - Add-in SolidWorks in .NET

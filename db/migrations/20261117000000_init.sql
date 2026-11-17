@@ -5,10 +5,10 @@ create type item_state as enum ('wip', 'review', 'rel', 'obs');
 create type eco_state  as enum ('review', 'rel', 'obs');
 create type approval_state as enum ('wait', 'ok', 'rejected');
 
--- Utenti applicativi (collegabili a Supabase Auth)
+-- Utenti applicativi (login = nome utente di dominio o account locale)
 create table app_users (
   id         uuid primary key default gen_random_uuid(),
-  auth_id    uuid unique references auth.users (id) on delete set null,
+  login      text unique,
   name       text not null,
   role       text not null default 'designer',
   created_at timestamptz not null default now()
@@ -211,14 +211,4 @@ begin
     n := n + 1;
   end loop;
   return n;
-end $$;
-
--- Sicurezza: RLS attiva; per ora accesso completo agli utenti autenticati
-do $$
-declare t text;
-begin
-  foreach t in array array['app_users','items','files','file_versions','bom_lines','item_events','ecos','eco_items','eco_approvals'] loop
-    execute format('alter table %I enable row level security', t);
-    execute format('create policy "authenticated full access" on %I for all to authenticated using (true) with check (true)', t);
-  end loop;
 end $$;

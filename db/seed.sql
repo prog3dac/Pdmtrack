@@ -1,6 +1,6 @@
 -- Dati di esempio (stessi del prototipo)
-insert into app_users (name, role) values
-  ('A. Cavani','designer'), ('M. Rossi','designer'), ('L. Bianchi','approver');
+insert into app_users (login, name, role) values
+  ('acavani','A. Cavani','designer'), ('mrossi','M. Rossi','designer'), ('lbianchi','L. Bianchi','approver');
 
 create temp table s (code text, descr text, type item_type, rev text, state item_state, mat text, mass numeric,
                      folder text, ver int, size_mb numeric, locked text, ref text);
@@ -34,10 +34,12 @@ insert into files (item_id, filename, folder_path, current_version, size_bytes, 
          case when u.id is not null then now() end
   from s join items i on i.code = s.code left join app_users u on u.name = s.locked;
 
-insert into file_versions (file_id, version, size_bytes, comment, created_by)
-  select f.id, g, f.size_bytes, case when g = 1 then 'Prima versione' else 'Aggiornamento' end,
+-- Hash fittizi ma ben formati: nello storage di sviluppo gli oggetti non esistono
+insert into file_versions (file_id, version, storage_path, sha256, size_bytes, comment, created_by)
+  select f.id, g, h.sha, h.sha, f.size_bytes, case when g = 1 then 'Prima versione' else 'Aggiornamento' end,
          (select id from app_users where name = 'M. Rossi')
-  from files f, lateral generate_series(greatest(1, f.current_version - 4), f.current_version) g;
+  from files f, lateral generate_series(greatest(1, f.current_version - 4), f.current_version) g,
+       lateral (select encode(sha256(convert_to(f.filename || ' v' || g, 'UTF8')), 'hex') as sha) h;
 
 create temp table b (parent text, child text, qty numeric);
 insert into b values
