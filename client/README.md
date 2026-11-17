@@ -32,7 +32,7 @@ Riferimenti di assiemi e disegni: in fase 1 il client non legge i file SolidWork
 dotnet publish client/src/Pdmtrack.Client -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o dist
 ```
 
-Produce un unico `pdm.exe` (circa 65 MB) che non richiede .NET installato.
+Produce un unico `pdm.exe` (circa 65 MB) che non richiede .NET installato. La CI lo compila a ogni push: si scarica come artefatto `pdm-win-x64` dalla pagina dell'esecuzione in GitHub Actions.
 
 ## Prova su Windows con SolidWorks
 

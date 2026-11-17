@@ -61,3 +61,20 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run build
+
+  client-exe:
+    name: pdm.exe (Windows)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: >-
+          dotnet publish client/src/Pdmtrack.Client -c Release -r win-x64 --self-contained
+          -p:PublishSingleFile=true -p:DebugType=none -o dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pdm-win-x64
+          path: dist/pdm.exe
+          retention-days: 30
