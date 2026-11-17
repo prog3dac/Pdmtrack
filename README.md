@@ -10,8 +10,8 @@ Prototipo di interfaccia cliccabile con dati di esempio, senza backend: `prototy
 
 Schema PostgreSQL 16 in `db/migrations/`, dati di esempio in `db/seed.sql`, dettagli e note per un futuro passaggio a Supabase in [`db/README.md`](db/README.md).
 
-- Tabelle: `items`, `files`, `file_versions`, `bom_lines`, `item_events`, `ecos`, `eco_items`, `eco_approvals`, `app_users`.
-- Funzioni: `add_file`, `check_out`, `check_out_many`, `check_in`, `undo_check_out`, `force_unlock`, `transition_item`, `approve_eco`, `bom_explode` (distinta multilivello), `item_mass`; vista `where_used`.
+- Tabelle: `items`, `item_revisions`, `files`, `file_versions`, `file_refs`, `bom_lines`, `item_events`, `ecos`, `eco_items`, `eco_approvals`, `app_users`.
+- Funzioni: `add_file`, `check_out`, `check_out_many`, `check_in`, `undo_check_out`, `force_unlock`, `transition_item`, `approve_eco`, `bom_explode` (distinta multilivello), `item_mass`, `version_tree` e `revision_tree` (file e versioni esatte da scaricare), `next_revision`; vista `where_used`.
 - L'utente si ricava da `current_app_user()`, mai da un parametro; le scritture passano solo dalle funzioni.
 - Test: `tests/run.sh` (anche in GitHub Actions).
 

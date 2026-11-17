@@ -17,6 +17,14 @@ Schema PostgreSQL 16 puro, senza dipendenze da Supabase.
 
 I client (web e Windows) non si collegano mai direttamente al database.
 
+## Versioni, revisioni e riferimenti
+
+- **Versione**: ogni check-in crea una riga immutabile in `file_versions` (1, 2, 3... per file), con la revisione dell'articolo in quel momento.
+- **Revisione**: una riga in `item_revisions` per ogni lettera (A, B, C...; senza I, O, Q; dopo Z viene AA). Al rilascio registra la versione corrente, chi e quando.
+- **Riferimenti**: `file_refs` lega una versione alle versioni esatte dei file che usa (assieme -> componenti, disegno -> modello). Il client li passa a `check_in` e `add_file` come `[{"filename": "111-0001.SLDPRT", "version": 11}]`; senza `version` vale la corrente.
+- **Riapertura**: `revision_tree(articolo, 'B')` restituisce tutti i file e le versioni da scaricare per aprire la rev B; senza revisione restituisce la versione corrente.
+- **Rilascio**: bloccato se un componente diretto in distinta o il modello di un disegno non sono rilasciati.
+
 ## Passaggio a Supabase
 
 Lo schema e' pensato per essere spostato su Supabase senza riscritture:
