@@ -29,6 +29,7 @@
   --info:#7DB0F5; --info-bg:#16294A; --neu:#98A0B4; --neu-bg:#262A37;
   --bad:#F28B82; --bad-bg:#3D1A17; --side:#0A0C12; --side-fg:#AEB4C8; --side-act:#1D2233; color-scheme:dark}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{height:100%}
 body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.45;padding-block:0;padding-left:0;padding-right:0}
 button,input,select{font:inherit;color:inherit}
@@ -72,6 +73,7 @@ select{background:var(--bg);border:1px solid var(--line);border-radius:6px;paddi
 .tw{overflow-x:auto;border-radius:8px}
 .tbl th{position:sticky;top:0;background:var(--surface2);text-align:left;font-size:11.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:8px 12px;white-space:nowrap}
 .tbl td{padding:9px 12px;border-top:1px solid var(--line);vertical-align:middle}
+.tbl td.mono,.tbl .lk.mono{white-space:nowrap}
 .tbl tbody tr[data-act]{cursor:pointer}
 .tbl tbody tr[data-act]:hover td{background:var(--bg)}
 .tbl tr.on td{background:var(--accent-soft)}
@@ -101,6 +103,7 @@ select{background:var(--bg);border:1px solid var(--line);border-radius:6px;paddi
 .tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 10px;color:var(--muted);white-space:nowrap;margin-bottom:-1px}
 .tabs button[aria-selected="true"]{color:var(--fg);border-color:var(--accent);font-weight:500}
 .db{flex:1;overflow:auto;padding:16px 18px 24px;display:flex;flex-direction:column;gap:16px}
+.db>*{flex-shrink:0}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
 .btn{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 12px;font-weight:500;display:inline-flex;align-items:center;gap:7px}
 .btn:hover{border-color:var(--muted)}
@@ -400,7 +403,7 @@ function refresh(){renderNav();renderContent();renderDetail()}
 document.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]'); if(!el)return;
   const a=el.dataset.act, c=el.dataset.c, i=c&&byCode[c];
-  if(a==='view'){S.view=el.dataset.v;S.q='';renderTools();renderContent();return}
+  if(a==='view'){S.view=el.dataset.v;S.q='';S.sel=null;renderTools();renderContent();renderDetail();return}
   if(a==='filter'){S.filter=el.dataset.v;renderTools();renderContent();return}
   if(a==='sel'){S.sel=c;S.tab=S.view==='vault'?'file':'info';S.collapsed.clear();renderContent();renderDetail();return}
   if(a==='goto'){if(S.view==='eco'){S.view='items';renderTools()}S.sel=c;S.tab='info';S.filter='all';S.type='all';S.q='';renderTools();renderContent();renderDetail();return}
