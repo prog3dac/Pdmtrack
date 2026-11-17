@@ -1,0 +1,10 @@
+bin/
+obj/
+*.user
+.vs/
+api/src/Pdmtrack.Api/vault/
+api/src/Pdmtrack.Api/wwwroot/
+web/node_modules/
+web/.next/
+web/out/
+web/*.tsbuildinfo

@@ -1,6 +1,6 @@
 -- Dati di esempio (stessi del prototipo)
-insert into app_users (name, role) values
-  ('A. Cavani','designer'), ('M. Rossi','designer'), ('L. Bianchi','approver');
+insert into app_users (login, name, role) values
+  ('acavani','A. Cavani','designer'), ('mrossi','M. Rossi','designer'), ('lbianchi','L. Bianchi','approver');
 
 create temp table s (code text, descr text, type item_type, rev text, state item_state, mat text, mass numeric,
                      folder text, ver int, size_mb numeric, locked text, ref text);
@@ -34,10 +34,28 @@ insert into files (item_id, filename, folder_path, current_version, size_bytes, 
          case when u.id is not null then now() end
   from s join items i on i.code = s.code left join app_users u on u.name = s.locked;
 
-insert into file_versions (file_id, version, size_bytes, comment, created_by)
-  select f.id, g, f.size_bytes, case when g = 1 then 'Prima versione' else 'Aggiornamento' end,
+-- Hash fittizi ma ben formati: nello storage di sviluppo gli oggetti non esistono.
+-- Ogni tre versioni all'indietro si scende di una revisione (v11-v9 = B, v8-v7 = A).
+insert into file_versions (file_id, version, revision, storage_path, sha256, size_bytes, comment, created_by)
+  select f.id, g, chr(greatest(ascii('A'), ascii(i.revision) - (f.current_version - g) / 3)),
+         h.sha, h.sha, f.size_bytes, case when g = 1 then 'Prima versione' else 'Aggiornamento' end,
          (select id from app_users where name = 'M. Rossi')
-  from files f, lateral generate_series(greatest(1, f.current_version - 4), f.current_version) g;
+  from files f join items i on i.id = f.item_id,
+       lateral generate_series(greatest(1, f.current_version - 4), f.current_version) g,
+       lateral (select encode(sha256(convert_to(f.filename || ' v' || g, 'UTF8')), 'hex') as sha) h;
+
+-- Revisioni precedenti, rilasciate all'ultima loro versione (la corrente la crea il trigger)
+insert into item_revisions (item_id, revision, file_version_id, released_at)
+  select f.item_id, v.revision, (array_agg(v.id order by v.version desc))[1], now() - interval '30 days'
+  from file_versions v join files f on f.id = v.file_id join items i on i.id = f.item_id
+  where v.revision <> i.revision
+  group by f.item_id, v.revision;
+-- Revisione corrente degli articoli rilasciati o obsoleti
+update item_revisions r set file_version_id = v.id, released_at = now() - interval '7 days',
+       obsoleted_at = case when i.state = 'obs' then now() end
+  from items i join files f on f.item_id = i.id
+       join file_versions v on v.file_id = f.id and v.version = f.current_version
+  where r.item_id = i.id and r.revision = i.revision and i.state in ('rel', 'obs');
 
 create temp table b (parent text, child text, qty numeric);
 insert into b values
@@ -47,6 +65,21 @@ insert into b values
  ('190-0001','150-0002',6),('190-0001','150-0003',6);
 insert into bom_lines (parent_id, child_id, qty)
   select p.id, c.id, b.qty from b join items p on p.code = b.parent join items c on c.code = b.child;
+
+-- Riferimenti delle versioni correnti: assiemi -> componenti, disegni -> modello
+insert into file_refs (parent_version_id, child_file_id, child_version)
+  select pv.id, cf.id, cf.current_version
+  from bom_lines b
+  join files pf on pf.item_id = b.parent_id
+  join file_versions pv on pv.file_id = pf.id and pv.version = pf.current_version
+  join files cf on cf.item_id = b.child_id
+  union
+  select pv.id, cf.id, cf.current_version
+  from items d
+  join files pf on pf.item_id = d.id
+  join file_versions pv on pv.file_id = pf.id and pv.version = pf.current_version
+  join files cf on cf.item_id = d.ref_item_id
+  where d.type = 'DRW';
 
 insert into ecos (code, title, state, requested_by, created_at) values
  ('ECO-0042','Albero conduttore da Ø18 a Ø20 per maggiore rigidità','review',(select id from app_users where name='A. Cavani'),'2026-11-12'),

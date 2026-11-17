@@ -4,16 +4,28 @@ PDM (Product Data Management) per la gestione di file e archivi SolidWorks: arti
 
 ## Stato
 
-Prototipo di interfaccia cliccabile con dati di esempio, senza backend: `prototype/index.html` (si apre direttamente nel browser).
+Fase 1 in corso: database PostgreSQL (`db/`), API REST ASP.NET Core (`api/`) interfaccia web in sola lettura (`web/`) e client Windows da riga di comando (`client/`). Il prototipo cliccabile originale resta in `prototype/index.html`.
 
 ## Database
 
-Schema PostgreSQL (compatibile Supabase) in `supabase/migrations/`, dati di esempio in `supabase/seed.sql`.
+Schema PostgreSQL 16 in `db/migrations/`, dati di esempio in `db/seed.sql`, dettagli e note per un futuro passaggio a Supabase in [`db/README.md`](db/README.md).
 
-- Tabelle: `items`, `files`, `file_versions`, `bom_lines`, `item_events`, `ecos`, `eco_items`, `eco_approvals`, `app_users`.
-- Funzioni: `bom_explode` (distinta multilivello), `item_mass`, `check_out`, `check_in`, `transition_item`, `approve_eco`; vista `where_used`.
-- RLS attiva, per ora con accesso completo agli utenti autenticati.
-- Testato su PostgreSQL 16 locale: migrazione, seed, massa dell'assieme (8,258 kg) e le funzioni di workflow.
+- Tabelle: `items`, `item_revisions`, `files`, `file_versions`, `file_refs`, `bom_lines`, `item_events`, `ecos`, `eco_items`, `eco_approvals`, `app_users`.
+- Funzioni: `add_file`, `check_out`, `check_out_many`, `check_in`, `undo_check_out`, `force_unlock`, `transition_item`, `approve_eco`, `bom_explode` (distinta multilivello), `item_mass`, `version_tree` e `revision_tree` (file e versioni esatte da scaricare), `next_revision`; vista `where_used`.
+- L'utente si ricava da `current_app_user()`, mai da un parametro; le scritture passano solo dalle funzioni.
+- Test: `tests/run.sh` per il database, `dotnet test Pdmtrack.sln` per API e client (entrambi in GitHub Actions).
+
+## API
+
+API REST in ASP.NET Core (.NET 8) in `api/`: articoli, distinta, where-used, check-out/check-in, revisioni e contenuto dei file. Dettagli e avvio in [`api/README.md`](api/README.md).
+
+## Interfaccia web
+
+Next.js in `web/`, esportata come sito statico e servita dall'API. Dettagli in [`web/README.md`](web/README.md).
+
+## Client Windows
+
+`pdm.exe` in `client/`: cartella di lavoro locale, get, check-out, check-in, annulla, aggiunta di nuovi file. Dettagli in [`client/README.md`](client/README.md).
 
 ## Roadmap
 
@@ -24,6 +36,6 @@ Schema PostgreSQL (compatibile Supabase) in `supabase/migrations/`, dati di esem
 ## Architettura prevista
 
 - Frontend web (React/Next.js)
-- Backend: Postgres + storage oggetti + API REST
+- Backend: PostgreSQL + storage oggetti S3-compatibile + API REST (Supabase come possibile destinazione futura)
 - Worker Windows per lettura dei file SolidWorks
 - Add-in SolidWorks in .NET
