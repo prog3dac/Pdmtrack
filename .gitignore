@@ -1,0 +1,5 @@
+bin/
+obj/
+*.user
+.vs/
+api/src/Pdmtrack.Api/vault/

@@ -1,4 +1,4 @@
-name: Test database
+name: Test
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
 
 jobs:
   db:
+    name: Database (SQL)
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -23,3 +24,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: tests/run.sh
+
+  api:
+    name: API (.NET)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PDM_TEST_ADMIN: Host=localhost;Username=postgres;Password=postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: dotnet test api/Pdmtrack.sln
